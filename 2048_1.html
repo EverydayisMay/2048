@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>2048</title>
+	<link rel="stylesheet" href="css/2048.css">
+</head>
+<body>
+	<p>
+		TOP:<span id="topScore">0</span><br>
+		SCORE:<span id="score">0</span>
+	</p>
+	<div id="playground">
+		<!-- 16个背景格 -->
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<div class="grid"></div>
+		<!-- 16个前景格 -->
+		<!-- line0 -->
+		<div id="c00" class="cell"></div>
+		<div id="c01" class="cell"></div>
+		<div id="c02" class="cell"></div>
+		<div id="c03" class="cell"></div>
+		<!-- line1 -->
+		<div id="c10" class="cell"></div>
+		<div id="c11" class="cell"></div>
+		<div id="c12" class="cell"></div>
+		<div id="c13" class="cell"></div>
+		<!-- line2 -->
+		<div id="c20" class="cell"></div>
+		<div id="c21" class="cell"></div>
+		<div id="c22" class="cell"></div>
+		<div id="c23" class="cell"></div>
+		<!-- line3 -->
+		<div id="c30" class="cell"></div>
+		<div id="c31" class="cell"></div>
+		<div id="c32" class="cell"></div>
+		<div id="c33" class="cell"></div>
+	</div>
+	<div class="prevStep">
+		<button onclick="prevStep()">上一步</button>
+		<button id="modify">修改</button>
+	</div>
+	<div id="modify_table">
+		<ul>
+			<li>
+				<ul class="line">
+					<li>
+						<a href="javascript:void(0);">2</a>
+					</li>
+					<li>
+						<a href="javascript:void(0);">4</a>
+					</li>
+					<li>
+						<a href="javascript:void(0);">8</a>
+					</li>
+					<li>
+						<a href="javascript:void(0);">16</a>
+					</li>
+				</ul>
+			</li>
+			<li>
+				<ul class="line">
+					<li>
+						<a href="javascript:void(0);">32</a>
+					</li>
+					<li>
+						<a href="javascript:void(0);">64</a>
+					</li>
+					<li>
+						<a href="javascript:void(0);">128</a>
+					</li>
+					<li>
+						<a href="javascript:void(0);">256</a>
+					</li>
+				</ul>
+			</li>
+			<li>
+				<ul class="line">
+					<li>
+						<a href="javascript:void(0);">512</a>
+					</li>
+					<li>
+						<a href="javascript:void(0);">1024</a>
+					</li>
+					<li>
+						<a href="javascript:void(0);">2048</a>
+					</li>
+					<li>
+						<a href="javascript:void(0);">4096</a>
+					</li>
+				</ul>
+			</li>
+		</ul>
+		<div>
+			<button id="confirm_modify">确定</button>
+			<button id="return_game">返回</button>
+		</div>
+	</div>
+	<div id="gameOver">
+		<!--div></div-->
+		<p>
+		  GAME OVER!<br>	
+			SCORE:<span id="final"></span><br>
+			<a class="btn" onclick="game.start()">Try again!
+			</a>
+		</p>
+	</div>
+	<script src="js/jquery-1.11.3.js"></script>	
+	<script src="js/2048.js"></script>
+	<script>
+		function prevStep(){
+			game.go_prev_step();
+		}
+	</script>
+	<script>
+		function scoreAdd(num,origin){
+			var total=num;
+			while((num=num/2)!==origin){
+				total+=num;
+			}
+			return total;
+		}
+		var isModifyClick=false;
+		var lastDivCell={};
+		var lastACheck={};
+		// 判断对象是否为空
+		function isEmptyObject(e){
+			var t;
+			for(t in e){
+				return !1;
+			} 
+			return !0;
+		}
+		function goBackGame(){
+			$('#modify_table').css('display','none');
+			$(document.body).removeClass('bodyBackground');
+			lastDivCell.removeClass('addBorder');
+			game.state=1;
+			isModifyClick=false;
+		}
+		$('#modify').click(function(){
+			game.state=0;
+			isModifyClick=true;
+			$(document.body).addClass('bodyBackground');		
+		});
+		$('div.cell').each(function(i){
+			var $this=$(this);
+			// console.log($this);
+			$(this).mouseover(function(){
+				if(isModifyClick){
+					$(this).addClass('addBorder');	
+				}	
+			}).click(function(){
+				if(isModifyClick){
+					if(!isEmptyObject(lastDivCell)){
+						lastDivCell.removeClass('addBorder');
+					}
+					lastDivCell=$this;
+					$('#modify_table').css('display','block');	
+				}	
+			}).mouseout(function(){
+				if(!(lastDivCell==$this)){
+					$(this).removeClass('addBorder');		
+				}
+			})	
+		});
+		$('#modify_table a').each(function(i){
+			var $this=$(this);
+			$(this).mouseover(function(){
+				$(this).addClass('aBackground');
+			}).mouseout(function(){
+				if(!(lastACheck==$this)){
+					$(this).removeClass('aBackground');
+				}
+			}).click(function(){
+				if(!isEmptyObject(lastACheck)){
+					lastACheck.removeClass('aBackground');
+				}
+				lastACheck=$this;	
+			});
+		});
+		$('#confirm_modify').click(function(){
+			if(!isEmptyObject(lastACheck)){
+				// console.log(lastDivCell.attr('id'));
+				var xb=lastDivCell.attr('id').split('');
+				var origin=game.data[xb[1]][xb[2]];
+				game.data[xb[1]][xb[2]]=parseInt(lastACheck.html());
+				/*修改单元格数字后，应该给score相应加上一定数值*/
+				game.score+=scoreAdd(game.data[xb[1]][xb[2]],origin);
+				game.state=1;
+				game.updateView();
+				goBackGame();
+			}else{
+				alert('请先选择一个数字');
+			}	
+		});
+		$('#return_game').click(function(){
+			goBackGame();
+		});
+	</script>
+</body>
+</html>
